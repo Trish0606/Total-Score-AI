@@ -1,40 +1,56 @@
 import streamlit as st
 from src.ingestion import fetch_live_scores
 
-# 1. Page Frame Setup
-st.set_page_config(page_title="Pure Math AI Engine", page_icon="🏀", layout="wide")
+# 1. Page Configuration
+st.set_page_config(page_title="Math AI Engine", page_icon="🏀", layout="wide")
 st.title("🏀 Total Score AI Math Assistant")
-st.markdown("Automated live betting tracking engine.")
+st.markdown("Automated Variance Matrix: Tracking ESPN against Market Lines.")
 
 # 2. Controls
-st.sidebar.header("🕹️ Engine Controls")
-league_choice = st.sidebar.selectbox("Select Target League", ["nba", "wnba"])
-refresh_rate = st.sidebar.slider("Auto-Refresh Rate (seconds)", 10, 60, 30)
+league_choice = st.sidebar.selectbox("Select League", ["nba", "wnba"])
+refresh_rate = st.sidebar.slider("Auto-Refresh (seconds)", 10, 60, 30)
 
 # 3. Modern Live Fragment Processing
-# This handles refreshes automatically without crashing
 @st.fragment(run_every=refresh_rate)
 def render_live_dashboard():
-    st.subheader(f"📡 Current Live {league_choice.upper()} Match Overview")
     live_games = fetch_live_scores(league_choice)
 
     if not live_games:
-        st.info(f"✨ No active live {league_choice.upper()} data feeds detected. System idling until court clocks start.")
+        st.info("✨ No active games. Waiting for tip-off...")
         return
 
     for game in live_games:
+        # Basic Game Data Extraction
         competition = game.get("competitions", [{}])[0]
         status = competition.get("status", {})
-        
-        if status.get("type", {}).get("state") != "in":
-            continue
+        if status.get("type", {}).get("state") != "in": continue
             
         game_name = game.get("name")
         clock = status.get("displayClock", "0:00")
         
+        # Calculate Engine Total (Mock logic - replace with your specific math)
+        # You can add inputs for the external market lines here
+        engine_total = 52.0  # Placeholder for your engine's projection
+        
         st.write("---")
-        st.write(f"### ⚔️ {game_name}")
-        st.write(f"**Status:** {clock} remaining in current period.")
+        st.markdown(f"### ⚔️ {game_name} | {clock}")
+        
+        # 📊 Variance Matrix Display
+        st.markdown("### 📊 MULTI-PLATFORM VARIANCE MATRIX")
+        
+        # Example values (You would replace these with dynamic inputs or data fetches)
+        pk_line = 54.5
+        kl_line = 53.5
+        dk_line = 55.5
+        
+        data = {
+            "Platform": ["Polymarket", "Kalshi", "DraftKings"],
+            "Live Line": [pk_line, kl_line, dk_line],
+            "Variance vs Engine": [f"{engine_total - pk_line:.1f}", 
+                                   f"{engine_total - kl_line:.1f}", 
+                                   f"{engine_total - dk_line:.1f}"]
+        }
+        st.table(data)
 
-# 4. Trigger
+# 4. Run the dashboard
 render_live_dashboard()
