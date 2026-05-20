@@ -48,15 +48,12 @@ def render_live_dashboard():
             t2_score = int(competitors[1].get("score", 0))
             game_total = t1_score + t2_score
             
-            # Quarter score arrays from ESPN Core data
+            # Quarter score arrays
             t1_q_scores = [int(q.get("value", 0)) for q in competitors[0].get("linescores", [])]
             t2_q_scores = [int(q.get("value", 0)) for q in competitors[1].get("linescores", [])]
             
             q1_total = (t1_q_scores[0] + t2_q_scores[0]) if len(t1_q_scores) >= 1 else 0
             q2_total = (t1_q_scores[1] + t2_q_scores[1]) if len(t1_q_scores) >= 2 else 0
-            q3_total = (t1_q_scores[2] + t2_q_scores[2]) if len(t1_q_scores) >= 3 else 0
-            q4_total = (t1_q_scores[3] + t2_q_scores[3]) if len(t1_q_scores) >= 4 else 0
-            
             first_half_actual = q1_total + q2_total
             q_total = (t1_q_scores[quarter-1] + t2_q_scores[quarter-1]) if (len(t1_q_scores) >= quarter) else 0
 
@@ -66,7 +63,7 @@ def render_live_dashboard():
             except ValueError:
                 time_left = 0.0
 
-            # Mathematical Execution Core
+            # Mathematical Execution
             adjusted_pacing = q_total + (time_left * pts_per_min)
             original_pacing = q_total + (time_left * original_pts_per_min)
             mirror_pred = q_total * 2
@@ -94,10 +91,21 @@ def render_live_dashboard():
                 with v_col2:
                     st.markdown("#### 🧠 MACRO GAME-FLOW PROJECTIONS")
                     
-                    # First Half Prediction Stack
                     if quarter == 1:
                         st.write("• **1st Half Prediction (Q1 × 2):** `Waiting for Q2...`")
                         st.write(f"• **1st Half Cumulative Points:** `{game_total} pts (Q1 Live)`")
                     else:
                         st.write(f"• **1st Half Prediction (Q1 × 2):** **{q1_total * 2}.0 Points**")
-                        st.write(f"• **1st Half Cumulative Points:** `{first_half_actual} pts
+                        st.write(f"• **1st Half Cumulative Points:** `{first_half_actual} pts` *(Q1: {q1_total} | Q2: {q2_total})*")
+                    
+                    st.write("---")
+                    
+                    if quarter < 4:
+                        st.write("• **Full Game Prediction (1H × 2):** `Waiting for Q4...`")
+                        st.write(f"• **Current Total Accumulation:** `{game_total} Points`")
+                    else:
+                        st.write(f"• **Full Game Prediction (1H × 2 Anchor):** **{first_half_actual * 2}.0 Points**")
+                        st.write(f"• **Current Total Accumulation:** `{game_total} Points (Q4 Live)`")
+
+# 4. Trigger Layout Deployment
+render_live_dashboard()
