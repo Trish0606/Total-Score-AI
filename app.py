@@ -64,4 +64,50 @@ else:
 
         # Mathematical Execution Core
         adjusted_pacing = q_total + (time_left * pts_per_min)
-        original_pacing = q_total + (time_left *
+        original_pacing = q_total + (time_left * original_pts_per_min)
+        mirror_pred = q_total * 2
+        
+        with st.container():
+            st.write("---")
+            st.markdown(f"### ⚔️ {game_name} | Running Clock: `Q{quarter} - {clock}`")
+            
+            v_col1, v_col2 = st.columns(2)
+            
+            with v_col1:
+                st.markdown("#### 📍 CURRENT COURT REALITY")
+                st.write(f"• **Cumulative Game Score:** `{game_total} Points`")
+                st.write(f"• **Active Q{quarter} Score Baseline:** `{q_total} Points`")
+                
+                st.markdown("#### 📈 MICRO-QUARTER PROJECTIONS")
+                st.info(f"**Adjusted Velocity Matrix ({int(pts_per_min)} PTS/MIN):**\n\nQuarter expected finish: **{round(adjusted_pacing, 1)} Points**")
+                st.write(f"**Original Anchor Matrix (5 PTS/MIN):**\n\nQuarter expected finish: **{round(original_pacing, 1)} Points**")
+                
+                if clock == mirror_time:
+                    st.success(f"🚨 **MIDPOINT MIRROR TRIGGER HIT ({mirror_time}):**\n\nPure 2x Score Prediction: **{mirror_pred}.0 Points**")
+                else:
+                    st.write(f"**Midpoint Mirror (2x Anchor):** Predicts **{mirror_pred}.0 Points** *(Locks at exactly {mirror_time})*")
+                    
+            with v_col2:
+                st.markdown("#### 🧠 MACRO GAME-FLOW PROJECTIONS")
+                
+                # First Half Prediction Stack
+                if quarter == 1:
+                    st.write("• **1st Half Prediction (Q1 × 2):** `Waiting for Q2...`")
+                    st.write(f"• **1st Half Cumulative Points:** `{game_total} pts (Q1 Live)`")
+                else:
+                    st.write(f"• **1st Half Prediction (Q1 × 2):** **{q1_total * 2}.0 Points**")
+                    st.write(f"• **1st Half Cumulative Points:** `{first_half_actual} pts` *(Q1: {q1_total} | Q2: {q2_total})*")
+                
+                st.write("---")
+                
+                # Full Game Prediction Stack
+                if quarter < 4:
+                    st.write("• **Full Game Prediction (1H × 2):** `Waiting for Q4...`")
+                    st.write(f"• **Current Total Accumulation:** `{game_total} Points`")
+                else:
+                    st.write(f"• **Full Game Prediction (1H × 2 Anchor):** **{first_half_actual * 2}.0 Points**")
+                    st.write(f"• **Current Total Accumulation:** `{game_total} Points (Q4 Live)`")
+
+# 3. Safe Auto-Refresh Execution Loop
+time.sleep(refresh_rate)
+st.experimental_rerun()
