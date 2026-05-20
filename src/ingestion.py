@@ -1,6 +1,15 @@
 import requests
 import json
+import streamlit as st
 
+@st.cache_data(ttl=20) # Cache for 20 seconds to avoid blocking
+def fetch_book_line(platform):
+    # REPLACE THESE WITH YOUR ACTUAL SCRAPING LOGIC
+    # Example: return requests.get("https://api.polymarket.com/...").json()['price']
+    
+    # Mock data for now:
+    lines = {"Polymarket": 53.5, "Kalshi": 54.0, "DraftKings": 54.5}
+    return lines.get(platform, 54.0)
 def fetch_live_scores(league="wnba"):
     """
     Fetches real-time live game data directly from ESPN's hidden API endpoint.
