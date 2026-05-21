@@ -80,4 +80,4 @@ def render_live_dashboard():
             })
         st.table(pd.DataFrame(data))
 
-render_live_dashboard
+render_live_dashboard()
