@@ -4,7 +4,7 @@ from src.ingestion import fetch_live_scores, fetch_schedule
 
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
-# Custom Terminal Styling
+# Custom CSS for the Terminal Look
 st.markdown("""
     <style>
     .stApp { background-color: #050505; }
@@ -13,7 +13,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Sidebar with AI Chat
+# Sidebar
 with st.sidebar:
     st.header("🕹️ Control Room")
     league = st.selectbox("Select Target League", ["nba", "wnba"])
@@ -25,28 +25,39 @@ with st.sidebar:
     if prompt := st.chat_input("Ask for prediction help..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.markdown(prompt)
-        response = "AI Analysis: The current pacing indicates high volatility. Monitor the variance."
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant"): st.markdown(response)
+        # Your AI Logic Here
+        st.session_state.messages.append({"role": "assistant", "content": "Analysis: High variance detected in Q2."})
+        with st.chat_message("assistant"): st.markdown("Analysis: High variance detected in Q2.")
 
-# Tabbed Layout
+# Tabs
 tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
 
 with tab1:
     @st.fragment(run_every=10)
     def render_live_terminal():
         st.title(f"🏀 {league.upper()} Arbitrage Terminal")
-        # Logic to display your Live Scoreboard, Pacing, and Variance Matrix
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Live Score", "19 - 13", delta="Q1 Running")
-        c2.metric("Mirror Projection", "64.0 pts")
-        c3.metric("Baseline", "41.5 pts")
-        c4.metric("Market Status", "VOLATILE")
         
+        # ACTIVE QUARTER ANALYTICS (As requested)
+        st.markdown("#### 🎯 Active Quarter Analytics")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Live Scoreboard", "53 - 37", delta="IND vs POR")
+        c2.metric("Live Market Line", "41.5 pts", delta="Current Market Total")
+        c3.metric("Live Quarter Total", "42 pts", delta="Q2 Running")
+        c4.metric("Current Game Total", "90 pts", delta="Combined Score")
+        
+        # MACRO GAME FLOW
+        st.markdown("#### 🧠 Macro Game-Flow Guide")
+        g1, g2, g3, g4 = st.columns(4)
+        g1.metric("Mirror Projection", "84.0 pts")
+        g2.metric("1H Projection", "90.0 pts")
+        g3.metric("Full Game Projection", "180.0 pts")
+        g4.metric("Target Adjusted Pacing", "63.0 pts")
+
+        # VARIANCE MATRIX
         st.markdown("#### 📊 Multi-Platform Variance Matrix")
         df = pd.DataFrame([
-            {"Platform": "📈 Polymarket", "Line": 40.5, "Var": 23.5, "Signal": "OVER"},
-            {"Platform": "👑 DraftKings", "Line": 41.5, "Var": 22.5, "Signal": "OVER"}
+            {"Platform": "📈 Polymarket", "Live Market Total": 40.5, "Live Odds": -110, "Variance": 43.5, "Signal": "OVER"},
+            {"Platform": "👑 DraftKings", "Live Market Total": 41.5, "Live Odds": -115, "Variance": 42.5, "Signal": "OVER"}
         ])
         st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;', subset=['Signal']), 
                      use_container_width=True, hide_index=True)
@@ -55,7 +66,5 @@ with tab1:
 
 with tab2:
     st.subheader("🗓️ Game Archive & Outlook")
-    st.markdown("#### Upcoming Games")
-    st.table(pd.DataFrame({"Game": ["Aces vs. Sky"], "Tip-Off": ["8:00 PM"]}))
-    st.markdown("#### Past Performance")
-    st.dataframe(pd.DataFrame({"Game": ["Fire vs. Fever"], "Outcome": ["Hit"]}))
+    # Add your logic for schedule and history here
+    st.write("Historical outcomes and upcoming schedules will appear here.")
