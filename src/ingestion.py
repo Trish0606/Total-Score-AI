@@ -1,7 +1,17 @@
 import requests
 import json
 import streamlit as st
+# In src/ingestion.py
+def fetch_live_scores(league):
+    # ... your existing code ...
+    return live_games
 
+def fetch_schedule(league):
+    # This is a placeholder until you write the actual logic
+    return [
+        {"game": "Aces vs. Sky", "tip_off": "8:00 PM"},
+        {"game": "Liberty vs. Sun", "tip_off": "10:00 PM"}
+    ]
 @st.cache_data(ttl=20) # Cache for 20 seconds to avoid blocking
 def fetch_book_line(platform):
     # REPLACE THESE WITH YOUR ACTUAL SCRAPING LOGIC
