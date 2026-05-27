@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from src.ingestion import fetch_live_scores 
+from src.ingestion import get_processed_game_data, fetch_schedule
 
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
-# Custom CSS for the terminal look
+# --- CSS FOR TERMINAL STYLE ---
 st.markdown("""
     <style>
     .stApp { background-color: #050505; }
@@ -13,57 +13,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 1. League-Specific Constants
-LEAGUE_PARAMS = {
-    "nba": {"pace": 2.15, "baseline": 55.5},
-    "wnba": {"pace": 1.95, "baseline": 41.5}
-}
-
-# 2. Sidebar: Control Room & AI Analyst
+# --- SIDEBAR: CONTROL ROOM & AI ---
 with st.sidebar:
     st.header("🕹️ Control Room")
     league = st.selectbox("Select Target League", ["nba", "wnba"])
-    params = LEAGUE_PARAMS[league]
+    params = {"nba": {"pace": 2.15, "baseline": 55.5}, "wnba": {"pace": 1.95, "baseline": 41.5}}[league]
     
     st.divider()
     st.header("🤖 AI Analyst")
     if "messages" not in st.session_state: st.session_state.messages = []
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
+    
     if prompt := st.chat_input("Ask about predictions..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"): st.markdown(prompt)
+        with st.chat_message("assistant"): st.markdown(f"Analysis: Evaluating {league.upper()} variance...")
 
-# 3. Main Dashboard
-tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
-
-with tab1:
-    # Display the specific teams playing (Replace with your dynamic variable)
-    st.title(f"🏀 {league.upper()} Arbitrage Terminal")
-    st.subheader("IND vs POR | Live") 
-    
-    # ROW 1: Active Quarter Analytics (WITH GREEN DELTAS)
-    st.markdown("#### 🎯 Active Quarter Analytics")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Live Scoreboard", "53 - 37", delta="IND vs POR")
-    c2.metric("Live Market Line", f"{params['baseline']} pts", delta="Current Market Total")
-    c3.metric("Live Quarter Total", "42 pts", delta="Q2 Running")
-    c4.metric("Current Game Total", "90 pts", delta="Combined Score")
-    
-    # ROW 2: Macro Game-Flow (WITH GREEN DELTAS)
-    st.markdown("#### 🧠 Macro Game-Flow Guide")
-    g1, g2, g3, g4 = st.columns(4)
-    g1.metric("Mirror Projection", "84.0 pts", delta="Engine Prediction")
-    g2.metric("1H Projection", "90.0 pts", delta="Pacing Adjusted")
-    g3.metric("Full Game Projection", "180.0 pts", delta="Projected Total")
-    g4.metric("Target Adjusted Pacing", "63.0 pts", delta="Benchmark")
-    
-    # ROW 3: Expanded Variance Matrix
-    st.markdown("#### 📊 Multi-Platform Variance Matrix")
-    data = [
-        {"Platform": "Polymarket", "Line": 40.5, "Odds": "-110", "Signal": "OVER"},
-        {"Platform": "DraftKings", "Line": 41.5, "Odds": "-115", "Signal": "OVER"},
-        {"Platform": "BetMGM", "Line": 41.0, "Odds": "-110", "Signal": "OVER"},
-        {"Platform": "FanDuel", "Line": 42.0, "Odds": "-112", "Signal": "OVER"}
-    ]
-    st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
-
-with tab2:
-    st.subheader("🗓️ Archive & Outlook")
+# --- MAIN TERMINAL ---
+tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL",
