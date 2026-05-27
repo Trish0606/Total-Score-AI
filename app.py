@@ -1,10 +1,11 @@
+
 import streamlit as st
 import pandas as pd
 from src.ingestion import get_processed_game_data
 
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
-# --- CUSTOM TERMINAL STYLING ---
+# --- CSS STYLING ---
 st.markdown("""
     <style>
     .stApp { background-color: #050505; }
@@ -17,17 +18,8 @@ st.markdown("""
 with st.sidebar:
     st.header("🕹️ Control Room")
     league = st.selectbox("Select Target League", ["nba", "wnba"])
-    params = {"nba": {"pace": 2.15, "baseline": 55.5}, "wnba": {"pace": 1.95, "baseline": 41.5}}[league]
-    
-    st.divider()
-    st.header("🤖 AI Analyst")
-    if "messages" not in st.session_state: st.session_state.messages = []
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]): st.markdown(msg["content"])
-    
-    if prompt := st.chat_input("Ask about predictions..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"): st.markdown(prompt)
+    # Adjusted params to include higher volatility/pace sensitivity
+    params = {"nba": {"pace": 2.15, "baseline": 220.5}, "wnba": {"pace": 1.95, "baseline": 165.5}}[league]
 
 # --- MAIN TERMINAL ---
 tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
@@ -37,32 +29,35 @@ with tab1:
     def render_live_terminal():
         active_games = get_processed_game_data(league)
         if not active_games:
-            st.info("No active games found right now.")
+            st.info("No active games right now.")
             return
 
         for game in active_games:
             st.title(f"🏀 {game['name']} Arbitrage Terminal")
             
-            q_total = game["q_total"]
-            proj_q = q_total + (float(game["clock"].split(":")[0]) * 5)
+            # PACE-ADJUSTED MATH
+            # Rule: (Total Points / Elapsed Minutes) * 48 minutes = Pace-Adjusted Prediction
+            elapsed_mins = 48.0 - (float(game["clock"].split(":")[0]) + (float(game["clock"].split(":")[1])/60))
+            pace_factor = game["total"] / elapsed_mins if elapsed_mins > 0 else 0
+            pace_projection = pace_factor * 48
             
-            # ROW 1: ACTIVE QUARTER ANALYTICS (Deltas Included)
-            st.markdown("#### 🎯 Active Quarter Analytics")
+            # ROW 1: GAME DATA (1H + Total)
+            st.markdown("#### 🎯 Game Flow Analytics")
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Live Scoreboard", game['total'], delta="Active Match")
-            c2.metric("Market Line", f"{params['baseline']} pts", delta="Current Odds")
-            c3.metric("Quarter Total", q_total, delta="Q-Pacing")
-            c4.metric("AI Projection", round(proj_q, 1), delta="Velocity Rule")
+            c1.metric("1H Total", "52 pts", delta="First Half")
+            c2.metric("Total Score", game['total'], delta="Current Game")
+            c3.metric("Pace Index", f"{pace_factor:.2f}", delta="Pts/Min Velocity")
+            c4.metric("AI Pace Prediction", round(pace_projection, 1), delta="Projected Final")
             
-            # ROW 2: MACRO GAME-FLOW GUIDE
+            # ROW 2: MACRO PROJECTIONS
             st.markdown("#### 🧠 Macro Game-Flow Guide")
             g1, g2, g3, g4 = st.columns(4)
-            g1.metric("Mirror Projection", f"{q_total * params['pace']:.1f} pts", delta="Engine Prediction")
-            g2.metric("1H Projection", f"{q_total * params['pace'] * 1.1:.1f} pts", delta="Pacing Adjusted")
-            g3.metric("Full Game Projection", f"{q_total * params['pace'] * 2:.1f} pts", delta="Projected Total")
-            g4.metric("Target Adjusted Pacing", f"{q_total * 1.5:.1f} pts", delta="Benchmark")
+            g1.metric("Baseline Projection", f"{params['baseline']} pts", delta="Market")
+            g2.metric("Velocity Adjusted", f"{round(pace_projection, 1)} pts", delta="Calculated")
+            g3.metric("1H Multiplier", f"{round(pace_projection * 0.55, 1)}", delta="H2 Forecast")
+            g4.metric("Variance Delta", f"{round(pace_projection - params['baseline'], 1)}", delta="Edge")
 
-            # ROW 3: EXPANDED VARIANCE MATRIX
+            # ROW 3: VARIANCE MATRIX
             st.markdown("#### 📊 Multi-Platform Variance Matrix")
             platforms = [
                 {"Platform": "📈 Polymarket", "Total": 40.5, "Signal": "📈 OVER"},
@@ -70,9 +65,7 @@ with tab1:
                 {"Platform": "🦁 BetMGM", "Total": 41.0, "Signal": "📈 OVER"},
                 {"Platform": "🔥 FanDuel", "Total": 42.0, "Signal": "📈 OVER"}
             ]
-            df = pd.DataFrame(platforms)
-            st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
-                         use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(platforms), use_container_width=True, hide_index=True)
 
     render_live_terminal()
 
