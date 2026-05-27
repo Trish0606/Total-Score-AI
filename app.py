@@ -45,3 +45,31 @@ with tab1:
             
             q_total = game["q_total"]
             proj_q = q_total + (float(game["clock"].split(":")[0]) * 5)
+            
+            # ROW 1: ACTIVE QUARTER ANALYTICS
+            st.markdown("#### 🎯 Active Quarter Analytics")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Live Scoreboard", game['total'], delta="Active Match")
+            c2.metric("Market Line", f"{params['baseline']} pts", delta="Current Odds")
+            c3.metric("Quarter Total", q_total, delta="Q-Pacing")
+            c4.metric("AI Projection", round(proj_q, 1), delta="Velocity Rule")
+            
+            # ROW 2: MACRO GAME-FLOW GUIDE
+            st.markdown("#### 🧠 Macro Game-Flow Guide")
+            g1, g2, g3, g4 = st.columns(4)
+            g1.metric("Mirror Projection", f"{q_total * params['pace']:.1f} pts", delta="Engine Prediction")
+            g2.metric("1H Projection", f"{q_total * params['pace'] * 1.1:.1f} pts", delta="Pacing Adjusted")
+            g3.metric("Full Game Projection", f"{q_total * params['pace'] * 2:.1f} pts", delta="Projected Total")
+            g4.metric("Target Adjusted Pacing", f"{q_total * 1.5:.1f} pts", delta="Benchmark")
+
+            # ROW 3: VARIANCE MATRIX
+            st.markdown("#### 📊 Multi-Platform Variance Matrix")
+            platforms = [{"Platform": "📈 Polymarket", "Total": 40.5, "Signal": "📈 OVER"}]
+            df = pd.DataFrame(platforms)
+            st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
+                         use_container_width=True, hide_index=True)
+
+    render_live_terminal()
+
+with tab2:
+    st.subheader(f"🗓️ {league.upper()} Archive & Outlook")
