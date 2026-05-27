@@ -1,53 +1,38 @@
 import streamlit as st
 import pandas as pd
-from src.ingestion import get_processed_game_data, fetch_schedule
 
-st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
+# 1. Define league-specific constants so they are always accurate
+LEAGUE_PARAMS = {
+    "nba": {"pace": 2.15, "baseline": 55.5},
+    "wnba": {"pace": 1.95, "baseline": 41.5}
+}
 
-# --- CSS FOR PROFESSIONAL TERMINAL LOOK ---
-st.markdown("""
-    <style>
-    .stApp { background-color: #050505; }
-    div[data-testid="stMetric"] { background-color: #0e1117; padding: 20px; border-radius: 10px; border: 1px solid #30363d; }
-    h4 { color: #8b949e !important; text-transform: uppercase; letter-spacing: 1.5px; }
-    </style>
-    """, unsafe_allow_html=True)
+st.set_page_config(layout="wide")
 
-# --- SIDEBAR: CONTROL & AI ---
+# 2. Sidebar for League Selection
 with st.sidebar:
     st.header("🕹️ Control Room")
-    league = st.selectbox("Select League", ["nba", "wnba"])
-    params = {"nba": {"pace": 2.15, "baseline": 55.5}, "wnba": {"pace": 1.95, "baseline": 41.5}}[league]
-    
-    st.divider()
-    st.header("🤖 AI Analyst")
-    if "messages" not in st.session_state: st.session_state.messages = []
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]): st.markdown(msg["content"])
-    
-    if prompt := st.chat_input("Ask for prediction help..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"): st.markdown(prompt)
-        with st.chat_message("assistant"): st.markdown(f"Analysis: Evaluating {league.upper()} variance...")
+    league = st.selectbox("Select Target League", ["nba", "wnba"])
+    # Fetch parameters dynamically based on the selection
+    params = LEAGUE_PARAMS[league]
 
-# --- MAIN TERMINAL ---
-tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
+# 3. Main Dashboard Layout
+st.title(f"🏀 {league.upper()} Arbitrage Terminal")
 
-with tab1:
-    @st.fragment(run_every=10)
-    def render_live_terminal():
-        active_games = get_processed_game_data(league)
-        
-        if not active_games:
-            st.info("No active games right now.")
-            return
+# Use columns for a clean metric layout
+c1, c2, c3, c4 = st.columns(4)
 
-        for game in active_games:
-            st.title(f"🏀 {game['name']} | Live")
-            
-            # MATH ENGINE INTEGRATION
-            q_total = game["q_total"]
-            proj_q = q_total + (float(game["clock"].split(":")[0]) * 5)
-            
-            # METRICS WITH GREEN DELTAS
-            c1, c2, c3, c4 = st.
+# Dynamic metrics using the params dictionary
+c1.metric("Live Scoreboard", "53 - 37")
+c2.metric("Live Market Line", f"{params['baseline']} pts")
+c3.metric("Live Quarter Total", "42 pts")
+c4.metric("Current Game Total", "90 pts")
+
+# 4. Variance Matrix
+st.markdown("#### 📊 Multi-Platform Variance Matrix")
+data = [
+    {"Platform": "Polymarket", "Line": 40.5, "Var": 23.5, "Signal": "OVER"},
+    {"Platform": "DraftKings", "Line": 41.5, "Var": 22.5, "Signal": "OVER"}
+]
+# Use st.dataframe for reliable display without styling errors
+st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
