@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
+from src.ingestion import fetch_live_scores 
 
-# Set page layout to wide to fit all metrics
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
-# Custom CSS for the "Terminal" look
+# Custom CSS for the terminal look
 st.markdown("""
     <style>
     .stApp { background-color: #050505; }
@@ -30,38 +30,25 @@ with st.sidebar:
     if "messages" not in st.session_state: st.session_state.messages = []
     if prompt := st.chat_input("Ask about predictions..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        # Add your AI logic here
 
-# 3. Main Tabs
+# 3. Main Dashboard
 tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
 
 with tab1:
+    # Display the specific teams playing (Replace with your dynamic variable)
     st.title(f"🏀 {league.upper()} Arbitrage Terminal")
+    st.subheader("IND vs POR | Live") 
     
-    # Row 1: Active Quarter Analytics
+    # ROW 1: Active Quarter Analytics (WITH GREEN DELTAS)
     st.markdown("#### 🎯 Active Quarter Analytics")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Live Scoreboard", "53 - 37")
-    c2.metric("Live Market Line", f"{params['baseline']} pts")
-    c3.metric("Live Quarter Total", "42 pts")
-    c4.metric("Current Game Total", "90 pts")
+    c1.metric("Live Scoreboard", "53 - 37", delta="IND vs POR")
+    c2.metric("Live Market Line", f"{params['baseline']} pts", delta="Current Market Total")
+    c3.metric("Live Quarter Total", "42 pts", delta="Q2 Running")
+    c4.metric("Current Game Total", "90 pts", delta="Combined Score")
     
-    # Row 2: Macro Game-Flow
+    # ROW 2: Macro Game-Flow (WITH GREEN DELTAS)
     st.markdown("#### 🧠 Macro Game-Flow Guide")
     g1, g2, g3, g4 = st.columns(4)
-    g1.metric("Mirror Projection", "84.0 pts")
-    g2.metric("1H Projection", "90.0 pts")
-    g3.metric("Full Game Projection", "180.0 pts")
-    g4.metric("Target Adjusted Pacing", "63.0 pts")
-    
-    # Row 3: Variance Matrix
-    st.markdown("#### 📊 Multi-Platform Variance Matrix")
-    data = [
-        {"Platform": "Polymarket", "Line": 40.5, "Var": 23.5, "Signal": "OVER"},
-        {"Platform": "DraftKings", "Line": 41.5, "Var": 22.5, "Signal": "OVER"}
-    ]
-    st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
-
-with tab2:
-    st.subheader("🗓️ Archive & Outlook")
-    st.write("Historical data and upcoming game schedules go here.")
+    g1.metric("Mirror Projection", "84.0 pts", delta="Engine Prediction")
+    g2.metric("1H Projection", "9
