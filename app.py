@@ -17,8 +17,13 @@ st.markdown("""
 with st.sidebar:
     st.header("🕹️ Control Room")
     league = st.selectbox("Select Target League", ["nba", "wnba"])
-    # Dynamic Constants
-    params = {"nba": {"pace": 2.15, "baseline": 55.5}, "wnba": {"pace": 1.95, "baseline": 41.5}}[league]
+    
+    # 1. DYNAMIC MATH PARAMETERS
+    LEAGUE_PARAMS = {
+        "nba": {"pace": 2.15, "baseline": 55.5, "name": "NBA"},
+        "wnba": {"pace": 1.95, "baseline": 41.5, "name": "WNBA"}
+    }
+    p = LEAGUE_PARAMS[league]
     
     st.divider()
     st.header("🤖 AI Analyst")
@@ -29,8 +34,7 @@ with st.sidebar:
     if prompt := st.chat_input("Ask about predictions..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.markdown(prompt)
-        # Add your AI logic here
-        with st.chat_message("assistant"): st.markdown("Analysis: Monitoring variance across all platforms...")
+        with st.chat_message("assistant"): st.markdown(f"Analysis: Evaluating {p['name']} variance metrics...")
 
 # --- Main Tabs ---
 tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
@@ -38,39 +42,39 @@ tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
 with tab1:
     @st.fragment(run_every=10)
     def render_live_terminal():
-        st.title(f"🏀 {league.upper()} Arbitrage Terminal")
+        st.title(f"🏀 {p['name']} Arbitrage Terminal")
         
-        # ACTIVE QUARTER ANALYTICS
+        # ACTIVE QUARTER ANALYTICS (Math depends on p['baseline'])
         st.markdown("#### 🎯 Active Quarter Analytics")
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Live Scoreboard", "53 - 37", delta="IND vs POR")
-        c2.metric("Live Market Line", f"{params['baseline']} pts", delta="Current Market Total")
+        c2.metric("Live Market Line", f"{p['baseline']} pts", delta="Current Market Total")
         c3.metric("Live Quarter Total", "42 pts", delta="Q2 Running")
         c4.metric("Current Game Total", "90 pts", delta="Combined Score")
         
-        # MACRO GAME-FLOW
+        # MACRO GAME-FLOW (Math depends on p['pace'])
         st.markdown("#### 🧠 Macro Game-Flow Guide")
         g1, g2, g3, g4 = st.columns(4)
-        g1.metric("Mirror Projection", "84.0 pts", delta="Engine Prediction")
-        g2.metric("1H Projection", "90.0 pts", delta="Pacing Adjusted")
-        g3.metric("Full Game Projection", "180.0 pts", delta="Projected Total")
-        g4.metric("Target Adjusted Pacing", "63.0 pts", delta="Benchmark")
+        g1.metric("Mirror Projection", f"{42 * p['pace']:.1f} pts", delta="Engine Prediction")
+        g2.metric("1H Projection", f"{80 * p['pace']:.1f} pts", delta="Pacing Adjusted")
+        g3.metric("Full Game Projection", f"{160 * p['pace']:.1f} pts", delta="Projected Total")
+        g4.metric("Target Adjusted Pacing", f"{42 * 1.5:.1f} pts", delta="Benchmark")
 
         # VARIANCE MATRIX
         st.markdown("#### 📊 Multi-Platform Variance Matrix")
-        platforms = [
-            {"Platform": "📈 Polymarket", "Total": 40.5, "Odds": "-110", "Signal": "📈 OVER"},
-            {"Platform": "👑 DraftKings", "Total": 41.5, "Odds": "-115", "Signal": "📈 OVER"}
-        ]
-        st.dataframe(pd.DataFrame(platforms).style.map(
-            lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
-            use_container_width=True, hide_index=True)
+        df = pd.DataFrame([{"Platform": "📈 Polymarket", "Total": 40.5, "Odds": "-110", "Signal": "📈 OVER"}])
+        st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
+                     use_container_width=True, hide_index=True)
     
     render_live_terminal()
 
 with tab2:
-    st.subheader("🗓️ Game Archive & Outlook")
-    st.markdown("#### Upcoming Games")
-    st.table(pd.DataFrame({"Game": ["Aces vs. Sky"], "Tip-Off": ["8:00 PM"]}))
-    st.markdown("#### Past Performance")
-    st.dataframe(pd.DataFrame({"Game": ["Fire vs. Fever"], "Outcome": ["Hit"], "Engine Prediction": [50.0]}))
+    st.subheader(f"🗓️ {p['name']} Archive & Outlook")
+    # 2. FILTERED HISTORY
+    # Only show history matching the selected league
+    history_df = pd.DataFrame([
+        {"League": "nba", "Game": "Lakers vs. Celtics", "Outcome": "Hit"},
+        {"League": "wnba", "Game": "Aces vs. Sky", "Outcome": "Hit"}
+    ])
+    filtered_history = history_df[history_df["League"] == league]
+    st.dataframe(filtered_history, use_container_width=True)
