@@ -4,7 +4,7 @@ from src.ingestion import get_processed_game_data
 
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
-# --- CSS STYLING ---
+# --- CSS TERMINAL STYLING ---
 st.markdown("""
     <style>
     .stApp { background-color: #050505; }
@@ -13,12 +13,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: CONTROL & AI ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.header("🕹️ Control Room")
     league = st.selectbox("Select Target League", ["nba", "wnba"])
-    # Adjusted params to include higher volatility/pace sensitivity
     params = {"nba": {"pace": 2.15, "baseline": 220.5}, "wnba": {"pace": 1.95, "baseline": 165.5}}[league]
+    
+    st.divider()
+    st.header("🤖 AI Analyst")
+    if "messages" not in st.session_state: st.session_state.messages = []
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
+    
+    if prompt := st.chat_input("Ask about predictions..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"): st.markdown(prompt)
 
 # --- MAIN TERMINAL ---
 tab1, tab2 = st.tabs(["🔴 LIVE TERMINAL", "📚 ARCHIVE & OUTLOOK"])
@@ -34,13 +43,14 @@ with tab1:
         for game in active_games:
             st.title(f"🏀 {game['name']} Arbitrage Terminal")
             
-            # PACE-ADJUSTED MATH
-            # Rule: (Total Points / Elapsed Minutes) * 48 minutes = Pace-Adjusted Prediction
-            elapsed_mins = 48.0 - (float(game["clock"].split(":")[0]) + (float(game["clock"].split(":")[1])/60))
-            pace_factor = game["total"] / elapsed_mins if elapsed_mins > 0 else 0
+            # SAFE CLOCK PROCESSING (Prevents IndexError)
+            clock_val = game.get("clock", "0:00")
+            parts = clock_val.split(":") if ":" in clock_val else ["0", "0"]
+            elapsed_mins = 48.0 - (float(parts[0]) + (float(parts[1]) / 60.0))
+            pace_factor = game["total"] / elapsed_mins if elapsed_mins > 1 else 0
             pace_projection = pace_factor * 48
-            
-            # ROW 1: GAME DATA (1H + Total)
+
+            # ROW 1: GAME FLOW ANALYTICS
             st.markdown("#### 🎯 Game Flow Analytics")
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("1H Total", "52 pts", delta="First Half")
@@ -64,7 +74,9 @@ with tab1:
                 {"Platform": "🦁 BetMGM", "Total": 41.0, "Signal": "📈 OVER"},
                 {"Platform": "🔥 FanDuel", "Total": 42.0, "Signal": "📈 OVER"}
             ]
-            st.dataframe(pd.DataFrame(platforms), use_container_width=True, hide_index=True)
+            df = pd.DataFrame(platforms)
+            st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
+                         use_container_width=True, hide_index=True)
 
     render_live_terminal()
 
