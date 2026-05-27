@@ -51,4 +51,17 @@ with tab1:
     g1, g2, g3, g4 = st.columns(4)
     g1.metric("Mirror Projection", "84.0 pts")
     g2.metric("1H Projection", "90.0 pts")
-    g3.metric("
+    g3.metric("Full Game Projection", "180.0 pts")
+    g4.metric("Target Adjusted Pacing", "63.0 pts")
+    
+    # Row 3: Variance Matrix
+    st.markdown("#### 📊 Multi-Platform Variance Matrix")
+    data = [
+        {"Platform": "Polymarket", "Line": 40.5, "Var": 23.5, "Signal": "OVER"},
+        {"Platform": "DraftKings", "Line": 41.5, "Var": 22.5, "Signal": "OVER"}
+    ]
+    st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+
+with tab2:
+    st.subheader("🗓️ Archive & Outlook")
+    st.write("Historical data and upcoming game schedules go here.")
