@@ -51,4 +51,19 @@ with tab1:
     st.markdown("#### 🧠 Macro Game-Flow Guide")
     g1, g2, g3, g4 = st.columns(4)
     g1.metric("Mirror Projection", "84.0 pts", delta="Engine Prediction")
-    g2.metric("1H Projection", "9
+    g2.metric("1H Projection", "90.0 pts", delta="Pacing Adjusted")
+    g3.metric("Full Game Projection", "180.0 pts", delta="Projected Total")
+    g4.metric("Target Adjusted Pacing", "63.0 pts", delta="Benchmark")
+    
+    # ROW 3: Expanded Variance Matrix
+    st.markdown("#### 📊 Multi-Platform Variance Matrix")
+    data = [
+        {"Platform": "Polymarket", "Line": 40.5, "Odds": "-110", "Signal": "OVER"},
+        {"Platform": "DraftKings", "Line": 41.5, "Odds": "-115", "Signal": "OVER"},
+        {"Platform": "BetMGM", "Line": 41.0, "Odds": "-110", "Signal": "OVER"},
+        {"Platform": "FanDuel", "Line": 42.0, "Odds": "-112", "Signal": "OVER"}
+    ]
+    st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+
+with tab2:
+    st.subheader("🗓️ Archive & Outlook")
