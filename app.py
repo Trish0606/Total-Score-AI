@@ -1,7 +1,29 @@
 import streamlit as st
 import pandas as pd
 from src.ingestion import get_processed_game_data
-
+# Pseudo-code example for your dashboard engine
+def get_game_data(game_id):
+    data = api.fetch_live_score(game_id)
+    
+    # 1. Define game states
+    game_status = data.get('status') # e.g., 'SCHEDULED', 'IN_PROGRESS', 'FINISHED'
+    
+    # 2. Add state-based logic
+    if game_status == 'SCHEDULED':
+        return {
+            "display_total": "Awaiting Tip-off",
+            "pace_index": "N/A",
+            "prediction_status": "Pre-Game Analysis Only"
+        }
+    elif game_status == 'IN_PROGRESS':
+        return {
+            "display_total": data['current_score'],
+            "pace_index": calculate_pace(data),
+            "prediction_status": "Live Tracking"
+        }
+    else:
+        # Handle finished games
+        return display_final_stats(data)
 st.set_page_config(page_title="Arbitrage AI Terminal", layout="wide")
 
 # --- CSS TERMINAL STYLING ---
