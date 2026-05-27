@@ -61,6 +61,7 @@ with tab1:
                 # Protect against division by zero at the exact start of a game
                 pace_factor = game["total"] / elapsed_mins if elapsed_mins > 0.5 else 0
                 pace_projection = pace_factor * params["mins"]
+                ai_prediction = round(pace_projection, 1)
 
                 # ROW 1: GAME FLOW ANALYTICS
                 st.markdown(f"#### 🎯 Game Flow Analytics (Status: {status})")
@@ -68,27 +69,60 @@ with tab1:
                 c1.metric("1H Total", f"{game.get('1h_score', 0)} pts", delta="First Half")
                 c2.metric("Total Score", game['total'], delta="Current Game")
                 c3.metric("Pace Index", f"{pace_factor:.2f}", delta="Pts/Min Velocity")
-                c4.metric("AI Pace Prediction", round(pace_projection, 1), delta="Projected Final")
+                c4.metric("AI Pace Prediction", ai_prediction, delta="Projected Final")
                 
                 # ROW 2: MACRO PROJECTIONS
                 st.markdown("#### 🧠 Macro Game-Flow Guide")
                 g1, g2, g3, g4 = st.columns(4)
                 g1.metric("Baseline Projection", f"{params['baseline']} pts", delta="Market")
-                g2.metric("Velocity Adjusted", f"{round(pace_projection, 1)} pts", delta="Calculated")
+                g2.metric("Velocity Adjusted", f"{ai_prediction} pts", delta="Calculated")
                 g3.metric("H2 Forecast", f"{round(pace_projection * 0.5, 1)}")
                 g4.metric("Variance Delta", f"{round(pace_projection - params['baseline'], 1)}", delta="Edge")
 
-                # ROW 3: VARIANCE MATRIX
+                # ROW 3: LIVE MULTI-PLATFORM VARIANCE MATRIX
                 st.markdown("#### 📊 Multi-Platform Variance Matrix")
-                platforms = [
-                    {"Platform": "📈 Polymarket", "Total": 40.5, "Signal": "📈 OVER"},
-                    {"Platform": "👑 DraftKings", "Total": 41.5, "Signal": "📈 OVER"},
-                    {"Platform": "🦁 BetMGM", "Total": 41.0, "Signal": "📈 OVER"},
-                    {"Platform": "🔥 FanDuel", "Total": 42.0, "Signal": "📈 OVER"}
+                
+                # Dynamic targets based on baseline market configurations
+                base_book_line = params['baseline']
+                platforms_data = [
+                    {"Platform": "📈 Polymarket", "Total": base_book_line - 1.0},
+                    {"Platform": "👑 DraftKings", "Total": base_book_line},
+                    {"Platform": "🦁 BetMGM", "Total": base_book_line - 0.5},
+                    {"Platform": "🔥 FanDuel", "Total": base_book_line + 0.5}
                 ]
-                df = pd.DataFrame(platforms)
-                st.dataframe(df.style.map(lambda x: 'color: #00ff41; font-weight: bold;' if "OVER" in x else '', subset=['Signal']), 
-                             use_container_width=True, hide_index=True)
+                
+                # Compute adaptive signals based on the AI Pace Prediction
+                matrix_rows = []
+                for platform in platforms_data:
+                    book_total = platform["Total"]
+                    if ai_prediction > book_total:
+                        signal = "🟢 OVER"
+                    elif ai_prediction < book_total:
+                        signal = "🔴 UNDER"
+                    else:
+                        signal = "⚪ PUSH"
+                        
+                    matrix_rows.append({
+                        "Platform": platform["Platform"],
+                        "Live Book Line": f"{book_total:.1f}",
+                        "Signal": signal
+                    })
+                
+                df = pd.DataFrame(matrix_rows)
+                
+                # Apply green text color for OVER signals and red text color for UNDER signals
+                def style_signals(val):
+                    if "OVER" in val:
+                        return 'color: #00ff41; font-weight: bold;'
+                    elif "UNDER" in val:
+                        return 'color: #ff3333; font-weight: bold;'
+                    return ''
+
+                st.dataframe(
+                    df.style.map(style_signals, subset=['Signal']), 
+                    use_container_width=True, 
+                    hide_index=True
+                )
 
             # --- CASE 2: GAME HAS NOT STARTED YET ---
             elif status in ["SCHEDULED", "PRE", "PRE_GAME"]:
