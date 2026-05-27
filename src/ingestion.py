@@ -2,6 +2,30 @@ import requests
 import json
 import streamlit as st
 # In src/ingestion.py
+# Add this to src/ingestion.py
+def get_processed_game_data(league):
+    games = fetch_live_scores(league)
+    processed = []
+    for game in games:
+        # Extract the fields your AI needs
+        comp = game.get("competitions", [{}])[0]
+        status = comp.get("status", {})
+        
+        # Calculate scores
+        competitors = comp.get("competitors", [])
+        team1 = competitors[0].get("score", 0)
+        team2 = competitors[1].get("score", 0)
+        
+        processed.append({
+            "name": game.get("name"),
+            "status": status.get("type", {}).get("state"),
+            "clock": status.get("displayClock", "0:00"),
+            "quarter": status.get("period", 1),
+            "total": int(team1) + int(team2),
+            "q_total": int(competitors[0].get("linescores", [{}])[status.get("period", 1)-1].get("value", 0)) + 
+                       int(competitors[1].get("linescores", [{}])[status.get("period", 1)-1].get("value", 0))
+        })
+    return processed
 def fetch_live_scores(league):
     # ... your existing code ...
     return live_games
