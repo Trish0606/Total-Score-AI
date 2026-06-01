@@ -10,6 +10,7 @@ def get_processed_game_data(league):
         comp = game.get("competitions", [{}])[0]
         status = comp.get("status", {})
         
+        # Normalize ESPN states ('pre', 'in', 'post') to uppercase flags
         raw_state = status.get("type", {}).get("state", "pre").lower()
         if raw_state == "in":
             app_status = "IN_PROGRESS"
@@ -46,24 +47,6 @@ def get_processed_game_data(league):
             "total": int(team1) + int(team2),
             "q_total": q_total
         })
-        
-    # --- FIXED MOCK DATA FOR ARCHIVE ---
-    processed.append({
-        "name": "Las Vegas Aces at New York Liberty",
-        "status": "FINAL",
-        "clock": "0:00",
-        "quarter": 4,
-        "total": 178,  
-        "q_total": 0
-    })
-    processed.append({
-        "name": "Connecticut Sun at Indiana Fever",
-        "status": "FINAL",
-        "clock": "0:00",
-        "quarter": 4,
-        "total": 152,  
-        "q_total": 0
-    })
         
     return processed
 
